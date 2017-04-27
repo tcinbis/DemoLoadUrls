@@ -15,8 +15,9 @@ public class UrlDatabase {
   private static final String CREATE = "CREATE TABLE IF NOT EXISTS urls (\n"
       + "	url text NOT NULL\n"
       + ");";
-  private static final String INSERT = "INSERT INTO urls(url) VALUES(?)";
-  private static final String INDEX = "CREATE INDEX urlIndex ON urls (url)";
+  private static final String INSERT = "INSERT INTO urls(url) VALUES(?);";
+  private static final String INDEX = "CREATE INDEX urlIndex ON urls (url);";
+  private static final String DROP_TABLE = "DROP TABLE IF EXISTS urls;";
   private Connection connection;
   private PreparedStatement preparedStatement;
 
@@ -35,14 +36,27 @@ public class UrlDatabase {
 
     if (connection != null){
       try(Statement statement = connection.createStatement()){
-        connection.setAutoCommit(false);
+        connection.setAutoCommit(true);
         statement.execute(CREATE);
         createIndexOnTable();
         preparedStatement = connection.prepareStatement(INSERT);
-        connection.commit();
       } catch (SQLException e){
         e.printStackTrace();
       }
+    }
+  }
+
+  public void createNewTable(){
+    try(Statement statement = connection.createStatement()){
+      if (connection != null) {
+        connection.setAutoCommit(true);
+        statement.execute(CREATE);
+        createIndexOnTable();
+        preparedStatement = connection.prepareStatement(INSERT);
+      }
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
     }
   }
 
@@ -63,6 +77,18 @@ public class UrlDatabase {
   public void createIndexOnTable(){
     try (PreparedStatement preparedStatement = connection.prepareStatement(INDEX)) {
       preparedStatement.executeUpdate();
+    } catch (SQLException e){
+      e.printStackTrace();
+    }
+  }
+
+  public void dropTable(){
+    try {
+      preparedStatement = connection.prepareStatement(DROP_TABLE);
+      preparedStatement.execute();
+      preparedStatement = null;
+      createNewTable();
+      preparedStatement = connection.prepareStatement(INSERT);
     } catch (SQLException e){
       e.printStackTrace();
     }
@@ -90,6 +116,14 @@ public class UrlDatabase {
   public void close(){
     try {
       connection.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void disableAutoCommit(){
+    try {
+      connection.setAutoCommit(false);
     } catch (SQLException e) {
       e.printStackTrace();
     }

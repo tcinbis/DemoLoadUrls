@@ -3,7 +3,7 @@
  */
 public class Main {
 
-  private static final int maxEntry = 500000;
+  private static final int maxEntry = 1000000;
 
   public static void main(String[] args) {
     try {
@@ -13,11 +13,15 @@ public class Main {
     }
     UrlDatabase urlDatabase = new UrlDatabase();
     ReadFromFile readFromFile = new ReadFromFile();
-    for (int i = 0;i <= maxEntry;i++){
-      System.out.println(i);
+    urlDatabase.dropTable();
+    urlDatabase.disableAutoCommit();
+
+    for (int i = 0;i < maxEntry;i++){
       urlDatabase.insert(readFromFile.readUrl());
-      if (i%1000 ==0){
+      if (i%200000 ==0){
+        System.out.println(i);
         urlDatabase.commit();
+        System.out.println("Done");
       }
     }
     urlDatabase.commit();
