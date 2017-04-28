@@ -1,3 +1,7 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
@@ -23,26 +27,45 @@ public class UrlDatabase {
 
   UrlDatabase(){
     try{
-      connection = DriverManager.getConnection(URL);
-      if (connection != null){
-        System.out.println("Connection created");
-      } else {
-        System.out.println("Creating new database!");
-        createNewDatabase();
+      boolean result = Files.deleteIfExists(Paths.get("C:/sqlite/db/url.db"));
+      if (result){
+        Files.delete(Paths.get("C:/sqlite/db/url.db"));
       }
-    } catch (SQLException e){
+      createNewDatabase();
+
+      if (connection != null && !connection.isClosed()){
+        try(Statement statement = connection.createStatement()){
+          connection.setAutoCommit(true);
+          preparedStatement = connection.prepareStatement(INSERT);
+        } catch (SQLException e){
+          e.printStackTrace();
+        }
+      } else if (connection.isClosed()){
+        connection = DriverManager.getConnection(URL);
+        connection.setAutoCommit(true);
+        preparedStatement = connection.prepareStatement(INSERT);
+      }
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
 
-    if (connection != null){
-      try(Statement statement = connection.createStatement()){
-        connection.setAutoCommit(true);
-        statement.execute(CREATE);
-        createIndexOnTable();
-        preparedStatement = connection.prepareStatement(INSERT);
-      } catch (SQLException e){
-        e.printStackTrace();
+  public void createNewDatabase() {
+    try (Connection conn = DriverManager.getConnection(URL)) {
+      if (conn != null) {
+        System.out.println("Connection created");
+        connection = conn;
+        DatabaseMetaData meta = conn.getMetaData();
+        System.out.println("The driver name is " + meta.getDriverName());
+        System.out.println("A new database has been created.");
+        createNewTable();
       }
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
     }
   }
 
@@ -53,20 +76,6 @@ public class UrlDatabase {
         statement.execute(CREATE);
         createIndexOnTable();
         preparedStatement = connection.prepareStatement(INSERT);
-      }
-
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-  }
-
-  public void createNewDatabase() {
-    try (Connection conn = DriverManager.getConnection(URL)) {
-      if (conn != null) {
-        connection = conn;
-        DatabaseMetaData meta = conn.getMetaData();
-        System.out.println("The driver name is " + meta.getDriverName());
-        System.out.println("A new database has been created.");
       }
 
     } catch (SQLException e) {
@@ -86,7 +95,6 @@ public class UrlDatabase {
     try {
       preparedStatement = connection.prepareStatement(DROP_TABLE);
       preparedStatement.execute();
-      commit();
       createNewTable();
       preparedStatement = connection.prepareStatement(INSERT);
     } catch (SQLException e){
@@ -96,7 +104,7 @@ public class UrlDatabase {
 
   public void insert(String urlFromFile){
     try {
-      if (!urlFromFile.equalsIgnoreCase("null")) {
+      if (urlFromFile != null && !urlFromFile.equalsIgnoreCase("null")) {
         preparedStatement.setString(1, urlFromFile);
         preparedStatement.executeUpdate();
       }

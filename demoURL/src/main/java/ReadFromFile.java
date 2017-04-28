@@ -8,7 +8,7 @@ import java.io.IOException;
 /**
  * Created by tcinb on 27.04.2017.
  */
-public class ReadFromFile extends Thread {
+public class ReadFromFile {
 
   private FileReader fileReader;
   private BufferedReader bufferedReader;
@@ -36,35 +36,11 @@ public class ReadFromFile extends Thread {
 
   }
 
-  /**
-   * This method reads the counter from txt file
-   *
-   * @return Returns a integer, which represents the counter. Returns -1 if there was an error.
-   */
-  public String readUrl() {
-    try {
-      if (bufferedReader != null) {
-        String url = bufferedReader.readLine();
-        //bufferedReader.close();
-        return url;
-      } else {
-        return "null";
-      }
-    } catch (IOException e) {
-      System.err.println("Error reading from file");
-      e.printStackTrace();
-    } catch (NumberFormatException e) {
-      System.err.println("Couldnt load map from File, because of corrupted init values");
-      e.printStackTrace();
-    }
-    return "null";
-  }
-
-  public void run() {
-    String url = "";
+  public void readUrl() {
+    String url = "start";
     try {
       while ((url = bufferedReader.readLine()) != null) {
-        Main.addUrls(url);
+        Main.insertInArray(url);
       }
     } catch (IOException e) {
       System.err.println("Error reading from file");
@@ -73,5 +49,7 @@ public class ReadFromFile extends Thread {
       System.err.println("Couldnt load map from File, because of corrupted init values");
       e.printStackTrace();
     }
+    System.out.println("DONE");
+    Main.doneReading = true;
   }
 }

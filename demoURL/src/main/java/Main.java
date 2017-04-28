@@ -6,10 +6,13 @@ import java.util.ArrayList;
 public class Main {
 
   private static final int maxEntry = 1000000;
-  private static ArrayList<String> urls = new ArrayList<>();
+  private static String[] urls = new String[1000000];
+  private static int placeToInsert = 0;
+  public static boolean doneReading = false;
 
-  public static void addUrls(String urls) {
-    Main.urls.add(urls);
+  public static void insertInArray(String url){
+    urls[placeToInsert] = url;
+    ++placeToInsert;
   }
 
   public static void main(String[] args) {
@@ -19,21 +22,33 @@ public class Main {
       e.printStackTrace();
     }
     UrlDatabase urlDatabase = new UrlDatabase();
-    new ReadFromFile().start();
-    urlDatabase.dropTable();
+    ReadFromFile readFromFile = new ReadFromFile();
+    readFromFile.readUrl();
+    try {
+      Thread.sleep(0, 600);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    //urlDatabase.dropTable();
     urlDatabase.disableAutoCommit();
 
     long timeStart = System.currentTimeMillis();
-    for (int i = 0;i < maxEntry;i++){
-      urlDatabase.insert(urls.get(0));
-      if (i%200000 ==0){
+    int i = 0;
+    while (i < 1000000) {
+
+      urlDatabase.insert(urls[i]);
+
+      if (i % 200000 == 0 && i > 0) {
         System.out.println(i);
         urlDatabase.commit();
         System.out.println("Done");
       }
+      i++;
     }
+
     urlDatabase.commit();
     urlDatabase.close();
-    System.out.println((System.currentTimeMillis()-timeStart)/1000.0 + "s needed for "+ maxEntry +" urls!");
+    System.out.println(
+        (System.currentTimeMillis() - timeStart) / 1000.0 + "s needed for " + maxEntry + " urls!");
   }
 }
