@@ -8,12 +8,13 @@ import java.io.IOException;
 /**
  * Created by tcinb on 27.04.2017.
  */
-public class ReadFromFile {
+public class ReadFromFile extends Thread {
+
   private FileReader fileReader;
   private BufferedReader bufferedReader;
   private static final String FILENAME = "urls.csv";
 
-  ReadFromFile(){
+  ReadFromFile() {
     try {
       initReader(FILENAME);
     } catch (IOException e) {
@@ -57,5 +58,20 @@ public class ReadFromFile {
       e.printStackTrace();
     }
     return "null";
+  }
+
+  public void run() {
+    String url = "";
+    try {
+      while ((url = bufferedReader.readLine()) != null) {
+        Main.addUrls(url);
+      }
+    } catch (IOException e) {
+      System.err.println("Error reading from file");
+      e.printStackTrace();
+    } catch (NumberFormatException e) {
+      System.err.println("Couldnt load map from File, because of corrupted init values");
+      e.printStackTrace();
+    }
   }
 }

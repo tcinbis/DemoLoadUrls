@@ -86,7 +86,7 @@ public class UrlDatabase {
     try {
       preparedStatement = connection.prepareStatement(DROP_TABLE);
       preparedStatement.execute();
-      preparedStatement = null;
+      commit();
       createNewTable();
       preparedStatement = connection.prepareStatement(INSERT);
     } catch (SQLException e){
