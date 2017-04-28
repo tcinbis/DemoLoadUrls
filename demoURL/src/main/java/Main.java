@@ -16,6 +16,7 @@ public class Main {
     urlDatabase.dropTable();
     urlDatabase.disableAutoCommit();
 
+    long timeStart = System.currentTimeMillis();
     for (int i = 0;i < maxEntry;i++){
       urlDatabase.insert(readFromFile.readUrl());
       if (i%200000 ==0){
@@ -24,6 +25,7 @@ public class Main {
         System.out.println("Done");
       }
     }
+    System.out.println((System.currentTimeMillis()-timeStart)/1000.0 +"s to insert "+maxEntry);
     urlDatabase.commit();
     urlDatabase.close();
   }
