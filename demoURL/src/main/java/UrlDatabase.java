@@ -22,8 +22,12 @@ public class UrlDatabase {
   private PreparedStatement preparedStatement;
 
   UrlDatabase(){
+    //Create db
+    String sTempDb = "url.db";
+    String sJdbc = "jdbc:sqlite";
+
     try{
-      connection = DriverManager.getConnection(URL);
+      connection = DriverManager.getConnection(sJdbc + ":" + sTempDb);
       if (connection != null){
         System.out.println("Connection created");
       } else {
