@@ -1,6 +1,6 @@
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -11,61 +11,50 @@ import java.sql.Statement;
  */
 public class UrlDatabase {
 
-  private static final String URL = "jdbc:sqlite:C:/sqlite/db/url.db";
-  private static final String CREATE = "CREATE TABLE IF NOT EXISTS urls (\n"
-      + "	url text NOT NULL\n"
-      + ");";
-  private static final String INSERT = "INSERT INTO urls(url) VALUES(?);";
-  private static final String INDEX = "CREATE INDEX urlIndex ON urls (url);";
-  private static final String DROP_TABLE = "DROP TABLE IF EXISTS urls;";
+  private static final String DATABASEURL = "jdbc:sqlite:url.db";
+  private String nameFromThread;
+  private String CREATE_TABLE;
+  private String INSERT;
+  private String INDEX;
+  private String DROP_TABLE;
   private Connection connection;
   private PreparedStatement preparedStatement;
 
-  UrlDatabase(){
-    //Create db
-    String sTempDb = "url.db";
-    String sJdbc = "jdbc:sqlite";
+  UrlDatabase(String nameFromThread) {
+    this.nameFromThread = nameFromThread;
+    CREATE_TABLE = "CREATE TABLE IF NOT EXISTS urls" + nameFromThread + " (url text NOT NULL);";
+    INSERT = "INSERT INTO urls"+nameFromThread+" (url) VALUES(?);";
+    INDEX = "CREATE INDEX urlIndex"+nameFromThread+" ON urls"+nameFromThread+" (url);";
+    DROP_TABLE = "DROP TABLE IF EXISTS urls"+nameFromThread+";";
 
-    try{
-      connection = DriverManager.getConnection(sJdbc + ":" + sTempDb);
-      if (connection != null){
+    try {
+      connection = DriverManager.getConnection(DATABASEURL);
+      if (connection != null) {
         System.out.println("Connection created");
       } else {
         System.out.println("Creating new database!");
         createNewDatabase();
       }
-    } catch (SQLException e){
+    } catch (SQLException e) {
       e.printStackTrace();
     }
 
-    if (connection != null){
-      try(Statement statement = connection.createStatement()){
+    if (connection != null) {
+      try (Statement statement = connection.createStatement()) {
         connection.setAutoCommit(true);
-        statement.execute(CREATE);
-        createIndexOnTable();
+        statement.executeUpdate(CREATE_TABLE);
+        System.out.println(INDEX);
+        statement.executeUpdate(INDEX);
         preparedStatement = connection.prepareStatement(INSERT);
-      } catch (SQLException e){
+      } catch (SQLException e) {
         e.printStackTrace();
       }
     }
-  }
-
-  public void createNewTable(){
-    try(Statement statement = connection.createStatement()){
-      if (connection != null) {
-        connection.setAutoCommit(true);
-        statement.execute(CREATE);
-        createIndexOnTable();
-        preparedStatement = connection.prepareStatement(INSERT);
-      }
-
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
+    disableAutoCommit();
   }
 
   public void createNewDatabase() {
-    try (Connection conn = DriverManager.getConnection(URL)) {
+    try (Connection conn = DriverManager.getConnection(DATABASEURL)) {
       if (conn != null) {
         connection = conn;
         DatabaseMetaData meta = conn.getMetaData();
@@ -78,38 +67,28 @@ public class UrlDatabase {
     }
   }
 
-  public void createIndexOnTable(){
-    try (PreparedStatement preparedStatement = connection.prepareStatement(INDEX)) {
-      preparedStatement.executeUpdate();
-    } catch (SQLException e){
-      e.printStackTrace();
-    }
-  }
-
-  public void dropTable(){
+  public void dropTable() {
     try {
       preparedStatement = connection.prepareStatement(DROP_TABLE);
       preparedStatement.execute();
       preparedStatement = null;
-      createNewTable();
       preparedStatement = connection.prepareStatement(INSERT);
-    } catch (SQLException e){
+    } catch (SQLException e) {
       e.printStackTrace();
     }
   }
 
-  public void insert(String urlFromFile){
+  public void insert(String urlFromFile) {
     try {
-      if (!urlFromFile.equalsIgnoreCase("null")) {
-        preparedStatement.setString(1, urlFromFile);
-        preparedStatement.executeUpdate();
-      }
-    } catch (SQLException e){
+      preparedStatement.setString(1, urlFromFile);
+      //TODO Compare with addBatch!
+      preparedStatement.executeUpdate();
+    } catch (SQLException e) {
       e.printStackTrace();
     }
   }
 
-  public void commit(){
+  public void commit() {
     try {
       connection.commit();
     } catch (SQLException e) {
@@ -117,7 +96,7 @@ public class UrlDatabase {
     }
   }
 
-  public void close(){
+  public void close() {
     try {
       connection.close();
     } catch (SQLException e) {
@@ -125,7 +104,7 @@ public class UrlDatabase {
     }
   }
 
-  public void disableAutoCommit(){
+  public void disableAutoCommit() {
     try {
       connection.setAutoCommit(false);
     } catch (SQLException e) {

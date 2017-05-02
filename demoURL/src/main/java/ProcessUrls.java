@@ -7,7 +7,7 @@ public class ProcessUrls extends Thread {
   public static boolean startProcessing = false;
 
   public void run() {
-    UrlDatabase urlDatabase = new UrlDatabase();
+    UrlDatabase urlDatabase = new UrlDatabase("");
     urlDatabase.dropTable();
     urlDatabase.disableAutoCommit();
     Main.readingThread.start();
