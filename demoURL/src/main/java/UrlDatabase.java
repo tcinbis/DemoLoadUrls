@@ -11,7 +11,7 @@ import java.sql.Statement;
  */
 public class UrlDatabase {
 
-  private static final String URL = "jdbc:sqlite:C:/sqlite/db/url.db";
+  private static final String URL = "jdbc:sqlite:url.db";
   private static final String CREATE = "CREATE TABLE IF NOT EXISTS urls (\n"
       + "	url text NOT NULL\n"
       + ");";
@@ -20,6 +20,7 @@ public class UrlDatabase {
   private static final String DROP_TABLE = "DROP TABLE IF EXISTS urls;";
   private Connection connection;
   private PreparedStatement preparedStatement;
+  private volatile boolean stop = false;
 
   UrlDatabase(){
     try{
@@ -40,6 +41,7 @@ public class UrlDatabase {
         statement.execute(CREATE);
         createIndexOnTable();
         preparedStatement = connection.prepareStatement(INSERT);
+        connection.setAutoCommit(false);
       } catch (SQLException e){
         e.printStackTrace();
       }
@@ -127,5 +129,9 @@ public class UrlDatabase {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
+
+  public void requestStop(){
+    stop = true;
   }
 }

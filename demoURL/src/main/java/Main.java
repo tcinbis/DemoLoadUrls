@@ -18,8 +18,11 @@ public class Main {
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
+
     UrlDatabase urlDatabase = new UrlDatabase();
-    new ReadFromFile().start();
+    ReaderLines readerLines = new ReaderLines(urlDatabase);
+    readerLines.start();
+    /*new ReadFromFile().start();
     urlDatabase.dropTable();
     urlDatabase.disableAutoCommit();
 
@@ -34,6 +37,6 @@ public class Main {
     }
     urlDatabase.commit();
     urlDatabase.close();
-    System.out.println((System.currentTimeMillis()-timeStart)/1000.0 + "s needed for "+ maxEntry +" urls!");
+    System.out.println((System.currentTimeMillis()-timeStart)/1000.0 + "s needed for "+ maxEntry +" urls!");*/
   }
 }
