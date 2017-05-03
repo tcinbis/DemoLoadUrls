@@ -55,7 +55,7 @@ public class ReadAndProcessThread extends Thread {
           startIndexOfChar = i + 1;
           ++counterOfUrls;
         }
-        if (counterOfUrls % 100000 == 0 && counterOfUrls > 0) {
+        if (counterOfUrls % COMMITLIMIT == 0 && counterOfUrls > 0) {
           database.commit();
           counterOfUrls = 0;
           ++commitCounter;
