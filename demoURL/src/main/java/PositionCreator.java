@@ -10,16 +10,15 @@ import java.util.ArrayList;
 public class PositionCreator {
 
   private static final String FILENAME = "urls-sample.txt";
-  ArrayList<Integer> newLinePositions = new ArrayList<>();
-  private static final int FACTOR = 5;
-  private long[] positions = new long[10000];
+  private static final int FACTOR = 10_000_000;
+  private ArrayList <Long> positions = new ArrayList<>();
   private static InputStream is;
 
   PositionCreator() {
 
   }
 
-  void getPositions() {
+  void generatePositions() {
     //read through the file and enter the positions of "\n" into an Array
     try {
       is = new BufferedInputStream(new FileInputStream(FILENAME));
@@ -33,9 +32,10 @@ public class PositionCreator {
         empty = false;
         for (int i = 0; i < readChars; ++i) {
           if (c[i] == '\n') {
+
             ++count;
             if (count % FACTOR == 0 && count > 0) {
-              positions[counterInPositionsArray] = positionCounter + i;
+              positions.add(positionCounter + i);
               ++counterInPositionsArray;
               count = 0;
               System.out.println(counterInPositionsArray);
@@ -53,5 +53,9 @@ public class PositionCreator {
         e.printStackTrace();
       }
     }
+  }
+
+  public ArrayList<Long> getPositions(){
+    return positions;
   }
 }

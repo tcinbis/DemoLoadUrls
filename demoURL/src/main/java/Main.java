@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by tcinb on 27.04.2017.
@@ -7,6 +8,7 @@ import java.io.IOException;
 public class Main extends Thread {
 
   public static Thread readingThread;
+  private static ArrayList<Long> positions;
 
   public static void main(String[] args) {
     try {
@@ -19,14 +21,21 @@ public class Main extends Thread {
     file.delete();
 
     PositionCreator positionCreator = new PositionCreator();
-    positionCreator.getPositions();
+    positionCreator.generatePositions();
+    positions = positionCreator.getPositions();
+
 
     long totalLines = 170000000;
     long linesToReadPerThread = totalLines/17;
+    UrlDatabase database = new UrlDatabase(1+"");
+    //Start the first Thread
+    new ReadAndProcessThread(0+"",0,positions.get(0)-1,database);
 
-    /*for (int i = 0; i <= 17;i++){
-      new ReadAndProcessThread(i+"",i*1000000,linesToReadPerThread).start();
-    }*/
+    int nameCounter = 1;
+    for (int i = 1; i < positions.size()-1;i++){
+      new ReadAndProcessThread(nameCounter+"",positions.get(i),(positions.get(i+1)-positions.get(i)),database).start();
+      ++nameCounter;
+    }
 
     //new ReadAndProcessThread("1",0,170000000).start();
   }

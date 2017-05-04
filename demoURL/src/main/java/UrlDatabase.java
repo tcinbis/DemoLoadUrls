@@ -23,7 +23,7 @@ public class UrlDatabase {
   UrlDatabase(String nameFromThread) {
     this.nameFromThread = nameFromThread;
     CREATE_TABLE = "CREATE TABLE IF NOT EXISTS urls" + nameFromThread + " (url text NOT NULL);";
-    INSERT = "INSERT INTO urls"+nameFromThread+" (url) VALUES(?);";
+    INSERT = "INSERT INTO urls"+nameFromThread+" (url) VALUES (?);";
     INDEX = "CREATE INDEX urlIndex"+nameFromThread+" ON urls"+nameFromThread+" (url);";
     DROP_TABLE = "DROP TABLE IF EXISTS urls"+nameFromThread+";";
 
@@ -45,6 +45,7 @@ public class UrlDatabase {
         statement.executeUpdate(CREATE_TABLE);
         System.out.println(INDEX);
         statement.executeUpdate(INDEX);
+
         preparedStatement = connection.prepareStatement(INSERT);
       } catch (SQLException e) {
         e.printStackTrace();
@@ -81,7 +82,6 @@ public class UrlDatabase {
   public void insert(String urlFromFile) {
     try {
       preparedStatement.setString(1, urlFromFile);
-      //TODO Compare with addBatch!
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       e.printStackTrace();

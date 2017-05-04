@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class ReadAndProcessThread extends Thread {
 
-  private int startLine = 0;
+  private long startPosition = 0;
   private static final String FILENAME = "urls-sample.txt";
   private static final long BUFFERSIZE = Integer.MAX_VALUE-10;
   private static final int COMMITLIMIT = 500000;
@@ -25,10 +25,11 @@ public class ReadAndProcessThread extends Thread {
   private MappedByteBuffer buffer;
   private CharBuffer charBuffer;
 
-  ReadAndProcessThread(String name, int startLine,long linesToRead) {
+  ReadAndProcessThread(String name, long position,long linesToRead, UrlDatabase database) {
     this.setName(name);
-    this.setStartLine(startLine);
+    this.startPosition = position;
     this.linesToRead = linesToRead;
+    this.database = database;
   }
 
   public void run() {
@@ -70,15 +71,11 @@ public class ReadAndProcessThread extends Thread {
   }
 
   private void init() throws IOException {
-    database = new UrlDatabase(this.getName());
     fileChannel = new RandomAccessFile(FILENAME, "r").getChannel();
     //TODO FIND A BETTER WAY TO DETERMINE WHERE TO START READING FROM THE FILE. WE HAVE TO START AT DIFFERENT LINES, NOT AT DIFFERENT POSITIONS IN THE BUFFER
-    buffer = fileChannel.map(MapMode.READ_ONLY, startLine, BUFFERSIZE);
+    System.out.println(startPosition+";"+BUFFERSIZE);
+    buffer = fileChannel.map(MapMode.READ_ONLY, startPosition, linesToRead);
     //charBuffer = decoder.decode(buffer);
-  }
-
-  public void setStartLine(int startLine) {
-    this.startLine = startLine;
   }
 
   public void setStop() {
