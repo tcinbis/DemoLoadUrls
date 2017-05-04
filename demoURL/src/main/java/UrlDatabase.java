@@ -43,8 +43,8 @@ public class UrlDatabase {
       try (Statement statement = connection.createStatement()) {
         connection.setAutoCommit(true);
         statement.executeUpdate(CREATE_TABLE);
-        System.out.println(INDEX);
-        statement.executeUpdate(INDEX);
+        //System.out.println(INDEX);
+        //statement.executeUpdate(INDEX);
 
         preparedStatement = connection.prepareStatement(INSERT);
       } catch (SQLException e) {
