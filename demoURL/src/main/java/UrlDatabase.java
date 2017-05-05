@@ -1,17 +1,22 @@
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 
 /**
  * Created by tcinb on 27.04.2017.
  */
 public class UrlDatabase {
 
-  private static final String DATABASEURL = "jdbc:sqlite:url.db";
+  private static final String DATABASEURL = "jdbc:postgresql://localhost:8090/urldb";
   private String nameFromThread;
   private String CREATE_TABLE;
   private String INSERT;
@@ -28,7 +33,7 @@ public class UrlDatabase {
     DROP_TABLE = "DROP TABLE IF EXISTS urls"+nameFromThread+";";
 
     try {
-      connection = DriverManager.getConnection(DATABASEURL);
+      connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
       if (connection != null) {
         System.out.println("Connection created");
       } else {
@@ -55,7 +60,7 @@ public class UrlDatabase {
   }
 
   public void createNewDatabase() {
-    try (Connection conn = DriverManager.getConnection(DATABASEURL)) {
+    try (Connection conn = DriverManager.getConnection(DATABASEURL, "postgres", "admin")) {
       if (conn != null) {
         connection = conn;
         DatabaseMetaData meta = conn.getMetaData();
@@ -110,5 +115,38 @@ public class UrlDatabase {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
+
+  public void copyFromFile() {
+    Connection con = null;
+    try {
+      con = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    System.err.println("Copying text data rows from stdin");
+
+    CopyManager copyManager = null;
+    try {
+      copyManager = new CopyManager((BaseConnection) con);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    FileReader fileReader = null;
+    try {
+      fileReader = new FileReader("urls-sample.txt");
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      copyManager.copyIn("COPY urls FROM STDIN", fileReader);
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+    }
+
+    System.err.println("Done.");
   }
 }

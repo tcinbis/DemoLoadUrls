@@ -12,7 +12,7 @@ public class Main extends Thread {
 
   public static void main(String[] args) {
     try {
-      Class.forName("org.sqlite.JDBC");
+      Class.forName("org.postgresql.Driver");
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
@@ -20,15 +20,17 @@ public class Main extends Thread {
     File file = new File("url.db");
     file.delete();
 
+    /*
     PositionCreator positionCreator = new PositionCreator();
     positionCreator.generatePositions();
     positions = positionCreator.getPositions();
-
+    */
 
     long totalLines = 170000000;
     long linesToReadPerThread = totalLines/17;
     UrlDatabase database = new UrlDatabase(1+"");
     //Start the first Thread
+    /*
     new ReadAndProcessThread(0+"",0,positions.get(0)-1,database);
 
     int nameCounter = 1;
@@ -38,5 +40,7 @@ public class Main extends Thread {
     }
 
     //new ReadAndProcessThread("1",0,170000000).start();
+    */
+    database.copyFromFile();
   }
 }
