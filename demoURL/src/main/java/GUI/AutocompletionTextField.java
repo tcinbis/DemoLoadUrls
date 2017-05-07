@@ -24,7 +24,7 @@ public class AutocompletionTextField extends TextField {
   //popup GUI
   private ContextMenu entriesPopup;
 
-  private static final String DATABASEURL = "jdbc:postgresql://localhost:8090/urldb";
+  private static final String DATABASEURL = "jdbc:postgresql://localhost:8090/urldatabase";
   private Connection connection;
   private Statement statement;
   private ResultSet searchResults;
@@ -71,14 +71,14 @@ public class AutocompletionTextField extends TextField {
           statement = connection.createStatement();
           //animation.setAnimate(true);
           searchCount = statement.executeQuery(
-              "SELECT COUNT(url) FROM urls WHERE url LIKE '" + enteredText.toLowerCase() + "%'");
+              "SELECT COUNT(url) FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%'");
           System.out.println("Search count done.");
           if (searchCount.next()) {
             System.out.println(searchCount.getString(1));
             AutoSuggestion.displayCount(searchCount.getString(1));
           }
           searchResults = statement.executeQuery(
-              " SELECT url FROM urls WHERE url LIKE '" + enteredText.toLowerCase() + "%' LIMIT 5");
+              " SELECT url FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%' LIMIT 5");
           System.out.println("Search results loaded.");
           entries.clear();
           while (searchResults.next()) {
