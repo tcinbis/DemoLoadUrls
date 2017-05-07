@@ -16,7 +16,8 @@ import org.postgresql.core.BaseConnection;
  */
 public class UrlDatabase {
 
-  private static final String DATABASEURL = "jdbc:postgresql://localhost:8090/urldb";
+  private static String DATABASEURL = "jdbc:postgresql://localhost:8090/postgres";
+  private static final String DATABASENAME = "urldatabase";
   private String nameFromThread;
   private String CREATE_TABLE;
   private String INSERT;
@@ -36,9 +37,11 @@ public class UrlDatabase {
       connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
       if (connection != null) {
         System.out.println("Connection created");
-      } else {
-        System.out.println("Creating new database!");
         createNewDatabase();
+        System.out.println(DATABASEURL);
+        connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
+      } else {
+        System.out.println("Missing datapase urlDatabase");
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -46,30 +49,30 @@ public class UrlDatabase {
 
     if (connection != null) {
       try (Statement statement = connection.createStatement()) {
-        connection.setAutoCommit(true);
         statement.executeUpdate(CREATE_TABLE);
-        //System.out.println(INDEX);
-        //statement.executeUpdate(INDEX);
-
+        statement.close();
+        System.out.println("Created");
+        connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
         preparedStatement = connection.prepareStatement(INSERT);
       } catch (SQLException e) {
         e.printStackTrace();
       }
     }
-    disableAutoCommit();
   }
 
   public void createNewDatabase() {
-    try (Connection conn = DriverManager.getConnection(DATABASEURL, "postgres", "admin")) {
-      if (conn != null) {
-        connection = conn;
-        DatabaseMetaData meta = conn.getMetaData();
-        System.out.println("The driver name is " + meta.getDriverName());
-        System.out.println("A new database has been created.");
+    try {
+      if (connection != null) {
+        Statement createStatement = connection.createStatement();
+        createStatement.executeUpdate("CREATE DATABASE "+DATABASENAME+";");
+        System.out.println("Created Database");
+
       }
 
     } catch (SQLException e) {
       System.out.println(e.getMessage());
+    } finally {
+      DATABASEURL = "jdbc:postgresql://localhost:8090/"+DATABASENAME;
     }
   }
 
@@ -86,8 +89,14 @@ public class UrlDatabase {
 
   public void insert(String urlFromFile) {
     try {
-      preparedStatement.setString(1, urlFromFile);
-      preparedStatement.executeUpdate();
+      if (!connection.isClosed()) {
+        preparedStatement.setString(1, urlFromFile);
+        preparedStatement.executeUpdate();
+      } else {
+        connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
+        preparedStatement.setString(1, urlFromFile);
+        preparedStatement.executeUpdate();
+      }
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -118,18 +127,12 @@ public class UrlDatabase {
   }
 
   public void copyFromFile() {
-    Connection con = null;
-    try {
-      con = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
 
     System.err.println("Copying text data rows from stdin");
 
     CopyManager copyManager = null;
     try {
-      copyManager = new CopyManager((BaseConnection) con);
+      copyManager = new CopyManager((BaseConnection) connection);
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -142,7 +145,7 @@ public class UrlDatabase {
     }
 
     try {
-      copyManager.copyIn("COPY urls FROM STDIN", fileReader);
+      copyManager.copyIn("COPY urls1 FROM STDIN", fileReader);
     } catch (SQLException | IOException e) {
       e.printStackTrace();
     }
