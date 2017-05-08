@@ -1,0 +1,7 @@
+To be able to use our 'build' jar the following requirements must be met:
+- PostgreSQL Server running on localhost and listening on Port 8090
+- Server Username: postgres Password: admin
+- Existing database: postgres
+
+We used the following installer for Windows 10 x64:
+https://www.enterprisedb.com/downloads/postgres-postgresql-downloads#windows
