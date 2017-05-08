@@ -1,6 +1,6 @@
 % !TEX TS-program = pdflatex
 % !TEX encoding = UTF-8 Unicode
-\documentclass[10pt]{article} % use larger type; default would be 10pt
+\documentclass[11pt]{article} % use larger type; default would be 10pt
 
 \usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
 
@@ -11,7 +11,7 @@
 %%% PAGE DIMENSIONS
 \usepackage{geometry} % to change the page dimensions
 \geometry{a4paper} % or letterpaper (US) or a5paper or....
-\geometry{margin=1in} % for example, change the margins to 2 inches all round
+\geometry{margin=0.8in} % for example, change the margins to 2 inches all round
 % \geometry{landscape} % set up the page for landscape
 %   read geometry.pdf for detailed page layout information
 
@@ -81,7 +81,7 @@ java -jar HackathonGUI-1.0.jar
 In das Textfeld kann nun Zeichen für Zeichen nach einer beliebigen URL gesucht werden. Unterhalb des Textfeldes werden hierbei fünf mögliche Resultate angezeigt. Die gesamte Anzahl der Treffer ist rechts neben dem Textfeld einzusehen.
 Falls die Zeit und Geduld besteht, kann mit dem starten des PostgreSQL Servers und dem Befehl:
 \begin{lstlisting}
-java -jar HackathonBuild-1.0.jar url-sample.txt'
+java -jar HackathonBuild-1.0.jar 'url-sample.txt'
 \end{lstlisting}
 das Vorbereiten der Daten gestartet werden.
 
