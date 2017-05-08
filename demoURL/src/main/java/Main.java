@@ -14,14 +14,9 @@ public class Main extends Thread {
       e.printStackTrace();
     }
 
-    File file = new File("url.db");
-    file.delete();
-
     UrlDatabase database = new UrlDatabase(1+"");
-    //Start the first Thread
     database.copyFromFile(false);
 
-    database.copyFromFile(false);
     PreOrderDatabase preOrderDatabase = new PreOrderDatabase();
 
     preOrderDatabase.splitInHttpAndS();

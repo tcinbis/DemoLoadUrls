@@ -29,6 +29,51 @@ public class PreOrderDatabase {
     }
   }
 
+  public void calculateCounts(){
+    try {
+      Statement statement = connection.createStatement();
+      String createCountTable = "CREATE TABLE IF NOT EXISTS counts (count text NOT NULL);";
+      statement.execute(createCountTable);
+
+      String countQuery = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'h%'));";
+      String countQuery2 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'ht%'));";
+      String countQuery3 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'htt%'));";
+      String countQuery4 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http%'));";
+      String countQuery5 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http:%'));";
+      String countQuery6 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http:/%'));";
+      String countQuery7 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http://%'));";
+      String countQuery8 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https%'));";
+      String countQuery9 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https:%'));";
+      String countQuery10 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https:/%'));";
+      String countQuery11 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://%'));";
+      String countQuery12 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http://w%'));";
+      String countQuery13 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http://ww%'));";
+      String countQuery14 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http://www%'));";
+      String countQuery15 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://w%'));";
+      String countQuery16 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://ww%'));";
+      String countQuery17 = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://www%'));";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    } catch (SQLException e){
+      e.printStackTrace();
+    }
+  }
+
   public void splitInHttpAndS() {
     try {
       Statement statement = connection.createStatement();

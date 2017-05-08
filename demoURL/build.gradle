@@ -25,16 +25,29 @@ jar {
     version = '0.1'
 }
 
-task fatJar(type: Jar) {
+task fatJarGUI(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'One Jar',
                 'Implementation-Version': 3,
-                'Main-Class': 'Main'
+                'Main-Class': 'GUI.AutoSuggestion'
     }
-    baseName = 'Hackathon'
+    baseName = 'HackathonGUI'
     version = '1.0'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
-build.dependsOn(fatJar)
+task fatJarBuild(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'One Jar',
+                'Implementation-Version': 3,
+                'Main-Class': 'Main'
+    }
+    baseName = 'HackathonBuild'
+    version = '1.0'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+build.dependsOn(fatJarGUI)
+build.dependsOn(fatJarBuild)

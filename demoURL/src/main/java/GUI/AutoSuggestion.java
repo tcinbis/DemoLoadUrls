@@ -31,7 +31,7 @@ public class AutoSuggestion extends Application {
     StackPane root = new StackPane();
     AutocompletionTextField actf = new AutocompletionTextField();
     actf.setMaxWidth(400.0);
-    HBox hBox = new HBox(2);
+    VBox hBox = new VBox(1);
     hBox.getChildren().add(actf);
     primaryStage.setResizable(false);
     primaryStage.setScene(new Scene(root, 600, 400));
