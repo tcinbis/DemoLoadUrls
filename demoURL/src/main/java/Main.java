@@ -20,10 +20,11 @@ public class Main extends Thread {
     File file = new File("url.db");
     file.delete();
 
-
+    /*
     PositionCreator positionCreator = new PositionCreator();
     positionCreator.generatePositions();
     positions = positionCreator.getPositions();
+    */
 
     long totalLines = 170000000;
     long linesToReadPerThread = totalLines/17;
@@ -40,5 +41,14 @@ public class Main extends Thread {
 
     //new ReadAndProcessThread("1",0,170000000).start();
 
+    database.copyFromFile();
+    PreOrderDatabase preOrderDatabase = new PreOrderDatabase();
+
+    preOrderDatabase.splitInHttpAndS();
+    preOrderDatabase.orderWithWWW("http");
+    preOrderDatabase.orderWithoutWWW("http");
+
+    preOrderDatabase.orderWithWWW("https");
+    preOrderDatabase.orderWithoutWWW("https");
   }
 }

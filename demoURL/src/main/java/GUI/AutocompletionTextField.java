@@ -89,6 +89,7 @@ public class AutocompletionTextField extends TextField {
    * "Suggestion" specific listners
    */
   private void setListner() {
+    textProperty().set("http://");
     //Add "suggestions" by changing text
     textProperty().addListener((observable, oldValue, newValue) -> {
       String enteredText = getText();

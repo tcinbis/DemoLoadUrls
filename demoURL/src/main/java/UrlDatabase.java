@@ -49,9 +49,9 @@ public class UrlDatabase {
 
     if (connection != null) {
       try (Statement statement = connection.createStatement()) {
-        statement.executeUpdate(CREATE_TABLE);
+        //statement.executeUpdate(CREATE_TABLE);
         statement.close();
-        System.out.println("Created");
+        System.out.println("Created Table");
         connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
         preparedStatement = connection.prepareStatement(INSERT);
       } catch (SQLException e) {
