@@ -55,13 +55,14 @@ public class PreOrderDatabase {
       querries[16] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://www%'));";
 
       int counter = 0;
+      long time = System.currentTimeMillis();
       for (String querry:querries){
         statement.addBatch(querry);
         System.out.println("Added "+counter);
         ++counter;
       }
       statement.executeBatch();
-
+      System.out.println("Needed time "+ (System.currentTimeMillis()-time)/1000 +" s");
     } catch (SQLException e){
       e.printStackTrace();
     }
