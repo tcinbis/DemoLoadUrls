@@ -17,9 +17,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javax.print.DocFlavor.STRING;
 
-public class AutocompletionTextField extends TextField {
+class AutocompletionTextField extends TextField {
 
   //Local variables
   //entries to autocomplete
@@ -83,7 +82,7 @@ public class AutocompletionTextField extends TextField {
 
 
   /**
-   * "Suggestion" specific listners
+   * "Suggestion" specific listeners
    */
   private void setListner() {
     textProperty().set("http://");
@@ -129,87 +128,93 @@ public class AutocompletionTextField extends TextField {
   }
 
   /**
-   * Method to count the Occurrences of the given input String
-   * Searches weither the given input is already preprocessed or has to be processed and sends the depening queries
+   * Method that scans the entered text and compares this String to our smaller databases http and https
+   * both with a www-version and a normal version.
+   * If the right database is found the method now checks the additional letters and counts the occurances
+   * of the entered text.
+   * This will be displayed in the end in our GUI.
+   *
    * @param enteredText the user input from the textfield
-   * @throws SQLException
    */
   private void countOccurrences(String enteredText) throws SQLException {
     searchCount = null;
-    if (countvalues.contains(enteredText)){ //the current search was already preprocessed
+    if (countvalues.contains(enteredText)) { //the current search was already preprocessed
       int place = countvalues.indexOf(enteredText);
       //Select the stored value in the database
       searchCount = statement.executeQuery("SELECT * FROM counts LIMIT 1 OFFSET "+place);
     }
-    if (searchCount != null && searchCount.next()){ //There is a value, display it
+    if (searchCount != null && searchCount.next()) { //There is a value, display it
       AutoSuggestion.displayCount(searchCount.getString(1));
     } else { //This search wasn't already preprocessed
       ArrayList<String> databases = selectMatchingDatabases(enteredText);
       Character letter = getLetter(enteredText);
       boolean letterischar = false;
       if (letter != null) {
-        letterischar = letter.charValue() >= (int) 'a' && letter.charValue() <= (int) 'z'; // Check if the letter is actually a char, that means is useful, before selecting a database with it
+        letterischar = letter.charValue() >= (int) 'a' && letter.charValue()
+            <= (int) 'z'; // Check if the letter is actually a char, that means is useful, before selecting a database with it
       }
       if (databases.size() > 1) { //Error check for the programmers, shouldn't be executed
         System.err.println("Not all double database cases caught !");
         System.err.println(Arrays.toString(databases.toArray()));
       }
-      switch (databases.get(0)){ // Determine which database is the correct one
+      switch (databases.get(0)) { // Determine which database is the correct one
         case HTTP_DATABASE:
-          if (letterischar){ // Select the Database : "http://'letter' ...
+          if (letterischar) { // Select the Database : "http://'letter' ...
             searchCount = statement.executeQuery(
                 "SELECT COUNT(*) FROM \"" + HTTP_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           } else { // Select the Database : "http:// 'non-letter'...
             searchCount = statement.executeQuery(
-                "SELECT COUNT(*) FROM \"" + HTTP_DATABASE +"\" WHERE url LIKE '"
+                "SELECT COUNT(*) FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           }
           break;
         case HTTP_WWW_DATABASE:
-          if (letterischar){// Select the Database : "http://www.'letter' ...
+          if (letterischar) {// Select the Database : "http://www.'letter' ...
             searchCount = statement.executeQuery(
                 "SELECT COUNT(*) FROM \"" + HTTP_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           } else {// Select the Database : "http:// www.'non-letter'...
             searchCount = statement.executeQuery(
-                "SELECT COUNT(*) FROM \"" + HTTP_DATABASE +"\" WHERE url LIKE '"
+                "SELECT COUNT(*) FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           }
           break;
         case HTTPS_DATABASE:
-          if (letterischar){// Select the Database : "https://'letter' ...
+          if (letterischar) {// Select the Database : "https://'letter' ...
             searchCount = statement.executeQuery(
                 "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           } else {// Select the Database : "https://'non-letter'...
             searchCount = statement.executeQuery(
-                "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE +"\" WHERE url LIKE '"
+                "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           }
           break;
         case HTTPS_WWW_DATABASE:
-          if (letterischar){// Select the Database : "https://www.'letter' ...
+          if (letterischar) {// Select the Database : "https://www.'letter' ...
             searchCount = statement.executeQuery(
-                "SELECT COUNT(*) FROM \"" + HTTPS_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
+                "SELECT COUNT(*) FROM \"" + HTTPS_WWW_DATABASE + "-" + letter
+                    + "\" WHERE url LIKE '"
                     + enteredText
                     + "%'");
           } else {
-            searchCount = statement.executeQuery(// Select the Database : "https://www.'non-letter'...
-                "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE +"\" WHERE url LIKE '"
-                    + enteredText
-                    + "%'");
+            searchCount = statement
+                .executeQuery(// Select the Database : "https://www.'non-letter'...
+                    "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '"
+                        + enteredText
+                        + "%'");
           }
           break;
         case REST_DATABASE: //Select the Database with all other entrys
           searchCount = statement.executeQuery(
-              "SELECT COUNT(*) FROM \"" + REST_DATABASE +"\" WHERE url LIKE '"
+              "SELECT COUNT(*) FROM \"" + REST_DATABASE + "\" WHERE url LIKE '"
                   + enteredText
                   + "%'");
           break;
@@ -223,25 +228,31 @@ public class AutocompletionTextField extends TextField {
   }
 
   /**
-   * Finds 5 example occurrences in random selected Databases which matches the input
-   * @param enteredText
-   * @throws SQLException
+   * Method that scans the entered text and compares this String to our smaller databases http and https
+   * both with a www-version and a normal version.
+   * If the right database is found the method now checks the additional letters and gets 5 suggestions randomly
+   * which will be added to our entries array list.
+   * @param enteredText The text entered in the GUI-TextField
    */
   private void findOccurrences(String enteredText) throws SQLException {
-    ArrayList<String> databases = selectMatchingDatabases(enteredText); // The databases which contain possible solutions for the input
-    ArrayList<String> lookupdatabases = new ArrayList<>();
-    lookupdatabases.addAll(databases); // the databases to look into for matching results
+    ArrayList<String> databases = selectMatchingDatabases(
+        enteredText); // The databases which contain possible solutions for the input
+    ArrayList<String> lookUpDatabases = new ArrayList<>();
+    lookUpDatabases.addAll(databases); // the databases to look into for matching results
     ArrayList<String> result = new ArrayList<>(); //Storage for the results
-    Character letter = getLetter(enteredText); // The letter to determine which database is to be used
-    boolean letterischar = false;
+    Character letter = getLetter(
+        enteredText); // The letter to determine which database is to be used
+    boolean letterIsChar = false;
     if (letter != null) {
-      letterischar = letter.charValue() >= (int) 'a' && letter.charValue() <= (int) 'z'; // Check weather the important char is a letter
+      letterIsChar = letter.charValue() >= (int) 'a'
+          && letter.charValue() <= (int) 'z'; // Check weather the important char is a letter
     }
     int loops = 0;
     boolean notrandom = false;
-    while (result.size() < 5&& loops < databases.size()) { // Searches for results until 5 are found or the databases contain less matching entries
+    while (result.size() < 5 && loops < databases
+        .size()) { // Searches for results until 5 are found or the databases contain less matching entries
       Random ran = new Random();
-      int r = ran.nextInt(lookupdatabases.size());
+      int r = ran.nextInt(lookUpDatabases.size());
       int letterint = ran.nextInt(26);
       int offset = 0;
       if (!notrandom) {
@@ -249,20 +260,22 @@ public class AutocompletionTextField extends TextField {
       }
       char c = 'a';
       if (!notrandom) {
-        c = (char) (ran.nextInt(26) + 'a'); // Random character to determine a database to look for occurrences if the string is not long enough to match only one database
+        c = (char) (ran.nextInt(26)
+            + 'a'); // Random character to determine a database to look for occurrences if the string is not long enough to match only one database
       }
       ResultSet resultSet = null; //Storage for the results
 
-      switch (lookupdatabases.get(r)) { // switches over the curen
+      switch (lookUpDatabases.get(r)) { // switches over the current databases
         case HTTP_DATABASE:
           if (letter == null) {
             boolean accepted4 = false;
-            if (letterint == 0) {
+            if (letterint == 0) { //Select the Database : "http://..."
               resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
               accepted4 = resultSet.isBeforeFirst();
-            } if(!accepted4) {
+            }
+            if (!accepted4) {
               while (resultSet == null || !resultSet.isBeforeFirst() && c <= 'z') {
                 resultSet = statement.executeQuery(
                     "SELECT * FROM \"" + HTTP_DATABASE + "-" + c + "\" WHERE url LIKE '"
@@ -271,12 +284,12 @@ public class AutocompletionTextField extends TextField {
                 c++;
               }
             }
-          } else if (letterischar) {
+          } else if (letterIsChar) { //Select the Database : "http://'letter' ..."
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
-          } else {
+          } else {  //Select the Database : "http://...
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
@@ -284,14 +297,15 @@ public class AutocompletionTextField extends TextField {
           break;
         case HTTP_WWW_DATABASE:
           boolean accepted = false;
-          if (letter == null){
-            if (letterint == 0 || enteredText.length() <= "http://www.".length()){
+          if (letter == null) { //Select the Database : "http://www..."
+            if (letterint == 0 || enteredText.length() <= "http://www.".length()) {
               resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
               accepted = resultSet.isBeforeFirst();
-            } if (!accepted) {
-              while (resultSet == null ||!resultSet.isBeforeFirst() && c <= 'z') {
+            }
+            if (!accepted) {
+              while (resultSet == null || !resultSet.isBeforeFirst() && c <= 'z') {
                 resultSet = statement.executeQuery(
                     "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + c + "\" WHERE url LIKE '"
                         + enteredText
@@ -299,12 +313,12 @@ public class AutocompletionTextField extends TextField {
                 c++;
               }
             }
-          } else if (letterischar){
+          } else if (letterIsChar) { //Select the Database : "http://www.'letter'..."
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
-          } else {
+          } else { //Select the Database : "http://www..."
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
@@ -312,13 +326,14 @@ public class AutocompletionTextField extends TextField {
           break;
         case HTTPS_DATABASE:
           boolean accepted2 = false;
-          if (letter == null) {
+          if (letter == null) { //Select the Database : "https://..."
             if (letterint == 0) {
               resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
               accepted2 = resultSet.isBeforeFirst();
-            } if (!accepted2) {
+            }
+            if (!accepted2) {
               while (resultSet == null || !resultSet.isBeforeFirst() && c <= 'z') {
                 resultSet = statement.executeQuery(
                     "SELECT * FROM \"" + HTTPS_DATABASE + "-" + c + "\" WHERE url LIKE '"
@@ -327,26 +342,27 @@ public class AutocompletionTextField extends TextField {
                 c++;
               }
             }
-          } else if (letterischar) {
+          } else if (letterIsChar) { //Select the Database : "https://www.'letter'..."
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTPS_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           } else {
-            resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery( //Select the Database : "https://..."
                 "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
           break;
         case HTTPS_WWW_DATABASE:
           boolean accepted3 = false;
-          if (letter == null){
-            if (letterint == 0 || enteredText.length() <= "https://www.".length()){
+          if (letter == null) { //Select the Database : "https://www..."
+            if (letterint == 0 || enteredText.length() <= "https://www.".length()) {
               resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
               accepted3 = resultSet.isBeforeFirst();
-            } if (!accepted3) {
+            }
+            if (!accepted3) {
               while (resultSet == null || !resultSet.isBeforeFirst() && c <= 'z') {
                 resultSet = statement.executeQuery(
                     "SELECT * FROM \"" + HTTPS_WWW_DATABASE + "-" + c + "\" WHERE url LIKE '"
@@ -355,25 +371,25 @@ public class AutocompletionTextField extends TextField {
                 c++;
               }
             }
-          } else if (letterischar){
+          } else if (letterIsChar) { //Select the Database : "https://www.'letter'..."
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTPS_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
-          } else {
+          } else { //Select the Database : "https://www..."
             resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
           break;
-        case REST_DATABASE:
+        case REST_DATABASE: //Select the Database with all non specified urls.
           resultSet = statement.executeQuery(
               "SELECT * FROM \"" + REST_DATABASE + "\" WHERE url LIKE '" + enteredText
                   + "%' LIMIT 1 OFFSET " + offset);
           break;
       }
 
-      if (notrandom){
+      if (notrandom) {
         loops++;
       }
       boolean hasresult = false;
@@ -381,12 +397,12 @@ public class AutocompletionTextField extends TextField {
         result.add(resultSet.getString(1));
         hasresult = true;
       }
-      if (!hasresult){
-        lookupdatabases.remove(r);
+      if (!hasresult) {
+        lookUpDatabases.remove(r);
       }
-      if (lookupdatabases.size() == 0){
+      if (lookUpDatabases.size() == 0) {
         notrandom = true;
-        lookupdatabases.addAll(databases);
+        lookUpDatabases.addAll(databases);
       }
     }
     System.out.println("Search results loaded.");
@@ -397,23 +413,32 @@ public class AutocompletionTextField extends TextField {
     entries.addAll(result);
   }
 
+  /**
+   * Method to get the letter after the prefixes (https://,http://,http://www.,https://www.)
+   * if there is one or to set it to null if there is no character after it.
+   * @param enteredText The entered text of the user
+   * @return the letter after the prefix
+   */
   private Character getLetter(String enteredText) {
     Character letter = null;
-    if (enteredText.startsWith("http://")){
+    if (enteredText.startsWith("http://")) {
       if (enteredText.length() > 7) {
         letter = enteredText.charAt(7);
       }
-    } if (enteredText.startsWith("http://www.")){
+    }
+    if (enteredText.startsWith("http://www.")) {
       if (enteredText.length() > 11) {
         letter = enteredText.charAt(11);
       } else {
         letter = null;
       }
-    } if (enteredText.startsWith("https://")){
+    }
+    if (enteredText.startsWith("https://")) {
       if (enteredText.length() > 8) {
         letter = enteredText.charAt(8);
       }
-    } if (enteredText.startsWith("https://www.")){
+    }
+    if (enteredText.startsWith("https://www.")) {
       if (enteredText.length() > 12) {
         letter = enteredText.charAt(12);
       } else {
@@ -423,21 +448,36 @@ public class AutocompletionTextField extends TextField {
     return letter;
   }
 
+  /**
+   * Depending on the input of the user the matching databases will be determined
+   * @param enteredText The text the user enters in the GUI
+   * @return ArrayList of Strings consisting of the matching databases
+   * @throws SQLException
+   */
   private ArrayList<String> selectMatchingDatabases(String enteredText) throws SQLException {
     String Shttps = "https://";
     String Shttpswww = "https://www.";
     String Shttp = "http://";
     String Shttpwww = "http://www.";
-    ArrayList<String>  resultlist = new ArrayList<>();
-    if (enteredText.regionMatches(0,Shttps,0,Math.min(enteredText.length(),Shttps.length())) && !enteredText.startsWith(Shttpswww)) {
+    ArrayList<String> resultlist = new ArrayList<>();
+    if (enteredText.regionMatches(0, Shttps, 0, Math.min(enteredText.length(), Shttps.length()))
+        && !enteredText.startsWith(Shttpswww)) {
       resultlist.add(HTTPS_DATABASE);
-    } if (enteredText.regionMatches(0,Shttp,0,Math.min(enteredText.length(),Shttp.length())) && !enteredText.startsWith(Shttpwww)) {
+    }
+    if (enteredText.regionMatches(0, Shttp, 0, Math.min(enteredText.length(), Shttp.length()))
+        && !enteredText.startsWith(Shttpwww)) {
       resultlist.add(HTTP_DATABASE);
-    } if (enteredText.regionMatches(0,Shttpswww,0,Math.min(enteredText.length(),Shttpswww.length()))){
+    }
+    if (enteredText
+        .regionMatches(0, Shttpswww, 0, Math.min(enteredText.length(), Shttpswww.length()))) {
       resultlist.add(HTTPS_WWW_DATABASE);
-    } if (enteredText.regionMatches(0,Shttpwww,0,Math.min(enteredText.length(),Shttpwww.length()))){
+    }
+    if (enteredText
+        .regionMatches(0, Shttpwww, 0, Math.min(enteredText.length(), Shttpwww.length()))) {
       resultlist.add(HTTP_WWW_DATABASE);
-    } if (enteredText.length() < Shttp.length() || !(enteredText.startsWith(Shttp)|| enteredText.startsWith(Shttps))){
+    }
+    if (enteredText.length() < Shttp.length() || !(enteredText.startsWith(Shttp) || enteredText
+        .startsWith(Shttps))) {
       resultlist.add(REST_DATABASE);
     }
     System.out.println(Arrays.toString(resultlist.toArray()));
