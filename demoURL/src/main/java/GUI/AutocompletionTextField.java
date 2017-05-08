@@ -32,8 +32,6 @@ public class AutocompletionTextField extends TextField {
   private Connection connection;
   private Statement statement;
   private ResultSet searchCount;
-  private boolean animate = false;
-  private Animation animation;
 
   //The names of the splitted Databases
   private final String HTTP_DATABASE = "urls-http";
@@ -69,8 +67,6 @@ public class AutocompletionTextField extends TextField {
     countvalues.add("https://www");
     this.entries = new ArrayList<>();
     this.entriesPopup = new ContextMenu();
-    animation = new Animation();
-    animation.start();
     //Connect the database
     try {
       connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");

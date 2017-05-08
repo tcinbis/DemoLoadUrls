@@ -1,20 +1,9 @@
 package GUI;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.TreeSet;
 import javafx.application.Application;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -22,34 +11,46 @@ import javafx.stage.Stage;
  */
 public class AutoSuggestion extends Application {
 
-  static Label entryCount;
+  private static Label entryCount;
 
+  /**
+   * Start the JavaFX application.
+   *
+   * @param args default arguments needed for starting.
+   */
   public static void main(String[] args) {
     launch(args);
   }
 
+  /**
+   * If the search was successful, the number of entries found are displayed.
+   *
+   * @param string is the number of found entries
+   */
+  static void displayCount(String string) {
+    entryCount.setText("Entries found: " + string);
+  }
+
   @Override
   public void start(Stage primaryStage) {
+    //Basic window properties
+    primaryStage.setResizable(false);
+    primaryStage.setTitle("Hackaton");
+    //Init default pane
+    BorderPane root = new BorderPane();
+    //Window dimensions with default pane
+    primaryStage.setScene(new Scene(root, 600, 400));
+    //Init of a modified version of a TextField which can display five found entries as suggestions below it
     AutocompletionTextField actf = new AutocompletionTextField();
     actf.setMaxWidth(400.0);
-    BorderPane root = new BorderPane();
-    root.setTop(actf);
-    primaryStage.setResizable(false);
-    primaryStage.setScene(new Scene(root, 600, 400));
-    primaryStage.setTitle("Hackaton");
+    //Add (if found) five possible entries as suggestions
     actf.getEntries().addAll(actf.getEntries());
+    //Init the entryCount label
     entryCount = new Label();
-    entryCount.setAlignment(Pos.CENTER);
+    //Add the two elements to the default pane
+    root.setTop(actf);
     root.setBottom(entryCount);
+    //Display the beauty
     primaryStage.show();
-  }
-
-  @Override
-  public void init() {
-
-  }
-
-  public static void displayCount(String string) {
-    entryCount.setText("Treffer: " + string);
   }
 }
