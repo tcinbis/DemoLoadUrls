@@ -353,7 +353,7 @@ public class AutocompletionTextField extends TextField {
             } if (!accepted3) {
               while (resultSet == null || !resultSet.isBeforeFirst() && c <= 'z') {
                 resultSet = statement.executeQuery(
-                    "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + c + "\" WHERE url LIKE '"
+                    "SELECT * FROM \"" + HTTPS_WWW_DATABASE + "-" + c + "\" WHERE url LIKE '"
                         + enteredText
                         + "%' LIMIT 1 OFFSET " + offset);
                 c++;

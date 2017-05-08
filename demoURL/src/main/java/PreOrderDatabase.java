@@ -35,7 +35,7 @@ public class PreOrderDatabase {
       String createCountTable = "CREATE TABLE IF NOT EXISTS counts (count text NOT NULL);";
       statement.execute(createCountTable);
 
-      String[] querries = new String[17];
+      String[] querries = new String[19];
       querries[0] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'h%'));";
       querries[1] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'ht%'));";
       querries[2] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'htt%'));";
@@ -53,6 +53,8 @@ public class PreOrderDatabase {
       querries[14] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://w%'));";
       querries[15] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://ww%'));";
       querries[16] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://www%'));";
+      querries[17] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'https://www.%'));";
+      querries[18] = "INSERT INTO counts (count) VALUES ((SELECT COUNT(*) FROM urls1 WHERE url LIKE 'http://www.%'));";
 
       int counter = 0;
       long time = System.currentTimeMillis();
