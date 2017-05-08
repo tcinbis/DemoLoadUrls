@@ -1,7 +1,12 @@
+import java.beans.Encoder;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -10,27 +15,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
+import org.postgresql.util.PSQLException;
 
 /**
- * Created by tcinb on 27.04.2017.
+ * @author Tom
  */
 public class UrlDatabase {
 
   private static String DATABASEURL = "jdbc:postgresql://localhost:8090/postgres";
   private static final String DATABASENAME = "urldatabase";
-  private String nameFromThread;
-  private String CREATE_TABLE;
   private String INSERT;
-  private String INDEX;
   private String DROP_TABLE;
   private Connection connection;
   private PreparedStatement preparedStatement;
 
   UrlDatabase(String nameFromThread) {
-    this.nameFromThread = nameFromThread;
-    CREATE_TABLE = "CREATE TABLE IF NOT EXISTS urls" + nameFromThread + " (url text NOT NULL);";
     INSERT = "INSERT INTO urls"+nameFromThread+" (url) VALUES (?);";
-    INDEX = "CREATE INDEX urlIndex"+nameFromThread+" ON urls"+nameFromThread+" (url);";
     DROP_TABLE = "DROP TABLE IF EXISTS urls"+nameFromThread+";";
 
     try {
@@ -64,9 +64,9 @@ public class UrlDatabase {
     try {
       if (connection != null) {
         Statement createStatement = connection.createStatement();
-        createStatement.executeUpdate("CREATE DATABASE "+DATABASENAME+";");
+        createStatement.executeUpdate("DROP DATABASE IF EXISTS " + DATABASENAME);
+        createStatement.executeUpdate("CREATE DATABASE " + DATABASENAME + " ENCODING='UTF8'");
         System.out.println("Created Database");
-
       }
 
     } catch (SQLException e) {
@@ -126,7 +126,7 @@ public class UrlDatabase {
     }
   }
 
-  public void copyFromFile() {
+  public void copyFromFile(boolean useBigData) {
 
     System.err.println("Copying text data rows from stdin");
 
@@ -138,18 +138,24 @@ public class UrlDatabase {
     }
 
     FileReader fileReader = null;
+    InputStreamReader reader = null;
     try {
-      fileReader = new FileReader("urls-sample.txt");
+      if (useBigData) {
+        reader = new InputStreamReader(new FileInputStream("urls.txt"), "UTF8");
+      } else {
+        reader = new InputStreamReader(new FileInputStream("urls-sample.txt"), "UTF8");
+      }
     } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
 
     try {
-      copyManager.copyIn("COPY urls1 FROM STDIN", fileReader);
+      copyManager.copyIn("COPY urls1 FROM STDIN WITH ENCODING 'UTF-8'", reader);
     } catch (SQLException | IOException e) {
       e.printStackTrace();
     }
-
     System.err.println("Done.");
   }
 }

@@ -1,5 +1,5 @@
 group 'demoURL'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 apply plugin: 'java'
 
@@ -14,3 +14,27 @@ dependencies {
     compile group: 'org.postgresql', name: 'postgresql', version: '42.0.0'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'Main'
+        )
+    }
+    baseName = 'Hackathon'
+    version = '0.1'
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'One Jar',
+                'Implementation-Version': 3,
+                'Main-Class': 'Main'
+    }
+    baseName = 'Hackathon'
+    version = '1.0'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+build.dependsOn(fatJar)
