@@ -1,6 +1,6 @@
 % !TEX TS-program = pdflatex
 % !TEX encoding = UTF-8 Unicode
-\documentclass[11pt]{article} % use larger type; default would be 10pt
+\documentclass[10pt]{article} % use larger type; default would be 10pt
 
 \usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
 
@@ -11,13 +11,15 @@
 %%% PAGE DIMENSIONS
 \usepackage{geometry} % to change the page dimensions
 \geometry{a4paper} % or letterpaper (US) or a5paper or....
-% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+\geometry{margin=1in} % for example, change the margins to 2 inches all round
 % \geometry{landscape} % set up the page for landscape
 %   read geometry.pdf for detailed page layout information
 
 \usepackage{graphicx} % support the \includegraphics command and options
 
 \usepackage[ngerman]{babel}
+\usepackage{listings}
+
 
 
 % \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
@@ -70,8 +72,17 @@ Als Programmiersprache entschieden wir uns für Java, in welcher wir uns am Best
 Eine Indizierung dieser grossen Datenmenge erwies sich in PostgreSQL als unvorteilhaft, da die standardmässige B-tree Indizierung die maximale Bytegrösse überschritten hat und ein Hashen dieser unbrauchbar war.\\
 Um besonders die Berechnung für die Anzahl der Treffer deutlich zu beschleunigen, teilten wir die ursprüngliche Datenbank, welche die gesamte Datenmenge umfasste, anhand von \glqq http\grqq, \glqq https\grqq und anschliessend nach \glqq www\grqq, sowie nach den Anfangsbuchstaben \glqq a-z\grqq  auf.\\
 Bei entsprechender Eingabe musste so nicht mehr über die gesamte Datenmenge nach passenden Einträgen gesucht werden, sondern nur in der jeweiligen Datenbank.\\
-Für Eingaben, welche Fälle beeinhalten bei dem das Aufteilen der Datenbanken keinen Laufzeitvorteil erbrachten, haben wir die Berechnung der Anzahl der Treffer vorberechnet.
+Für Eingaben, welche Fälle beeinhalten bei dem das Aufteilen der Datenbanken keinen Laufzeitvorteil erbrachten, haben wir die Anzahl der Treffer vorberechnet.
 
-
+\section{Nutzung}
+Um den Code testen zu können ist zuerst ein Start des PostgreSQL Servers nötig, eine entsprechende Batchfile zum Starten sowie Beenden ist auf der Festplatte vorhanden. Anschliessend kann mit dem Befehl \begin{lstlisting}
+java -jar HackathonGUI-1.0.jar
+\end{lstlisting} eine simple GUI gestartet werden.\\
+In das Textfeld kann nun Zeichen für Zeichen nach einer beliebigen URL gesucht werden. Unterhalb des Textfeldes werden hierbei fünf mögliche Resultate angezeigt. Die gesamte Anzahl der Treffer ist rechts neben dem Textfeld einzusehen.
+Falls die Zeit und Geduld besteht, kann mit dem starten des PostgreSQL Servers und dem Befehl:
+\begin{lstlisting}
+java -jar HackathonBuild-1.0.jar url-sample.txt'
+\end{lstlisting}
+das Vorbereiten der Daten gestartet werden.
 
 \end{document}
