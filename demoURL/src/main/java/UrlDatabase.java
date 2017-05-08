@@ -25,11 +25,13 @@ public class UrlDatabase {
   private static String DATABASEURL = "jdbc:postgresql://localhost:8090/postgres";
   private static final String DATABASENAME = "urldatabase";
   private String INSERT;
+  private String CREATE_TABLE;
   private String DROP_TABLE;
   private Connection connection;
   private PreparedStatement preparedStatement;
 
   UrlDatabase(String nameFromThread) {
+    CREATE_TABLE = "CREATE TABLE IF NOT EXISTS urls" + nameFromThread + " (url text NOT NULL);";
     INSERT = "INSERT INTO urls"+nameFromThread+" (url) VALUES (?);";
     DROP_TABLE = "DROP TABLE IF EXISTS urls"+nameFromThread+";";
 
@@ -49,7 +51,7 @@ public class UrlDatabase {
 
     if (connection != null) {
       try (Statement statement = connection.createStatement()) {
-        //statement.executeUpdate(CREATE_TABLE);
+        statement.executeUpdate(CREATE_TABLE);
         statement.close();
         System.out.println("Created Table");
         connection = DriverManager.getConnection(DATABASEURL, "postgres", "admin");
