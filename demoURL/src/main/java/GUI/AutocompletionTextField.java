@@ -73,7 +73,7 @@ public class AutocompletionTextField extends TextField {
           searchCount = statement.executeQuery(
               "SELECT COUNT(url) FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%'");
           System.out.println("Search count done.");
-          if (searchCount.next()) {
+          if (searchCount != null && searchCount.next()) {
             System.out.println(searchCount.getString(1));
             AutoSuggestion.displayCount(searchCount.getString(1));
           }
@@ -81,7 +81,8 @@ public class AutocompletionTextField extends TextField {
               " SELECT url FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%' LIMIT 5");
           System.out.println("Search results loaded.");
           entries.clear();
-          while (searchResults.next()) {
+
+          while (searchResults != null && searchResults.next()) {
             entries.add(searchResults.getString(1));
             System.out.println(searchResults.getString(1));
           }
