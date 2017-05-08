@@ -34,8 +34,6 @@ public class AutoSuggestion extends Application {
     actf.setMaxWidth(400.0);
     BorderPane root = new BorderPane();
     root.setTop(actf);
-    VBox hBox = new VBox(1);
-    hBox.getChildren().add(actf);
     primaryStage.setResizable(false);
     primaryStage.setScene(new Scene(root, 600, 400));
     primaryStage.setTitle("Hackaton");

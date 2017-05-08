@@ -143,7 +143,7 @@ public class AutocompletionTextField extends TextField {
     if (countvalues.contains(enteredText)){ //the current search was already preprocessed
       int place = countvalues.indexOf(enteredText);
       //Select the stored value in the database
-      //searchCount = statement.executeQuery("SELECT * FROM counts LIMIT 1 OFFSET "+place);
+      searchCount = statement.executeQuery("SELECT * FROM counts LIMIT 1 OFFSET "+place);
     }
     if (searchCount != null && searchCount.next()){ //There is a value, display it
       AutoSuggestion.displayCount(searchCount.getString(1));
@@ -361,12 +361,12 @@ public class AutocompletionTextField extends TextField {
             }
           } else if (letterischar){
             resultSet = statement.executeQuery(
-                "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
+                "SELECT * FROM \"" + HTTPS_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           } else {
             resultSet = statement.executeQuery(
-                "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
+                "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
           break;
