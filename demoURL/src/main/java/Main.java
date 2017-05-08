@@ -19,6 +19,8 @@ public class Main extends Thread {
 
     PreOrderDatabase preOrderDatabase = new PreOrderDatabase();
 
+    preOrderDatabase.calculateCounts();
+
     preOrderDatabase.splitInHttpAndS();
     preOrderDatabase.orderWithWWW("http");
     preOrderDatabase.orderWithoutWWW("http");
