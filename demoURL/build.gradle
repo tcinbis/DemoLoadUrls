@@ -49,5 +49,10 @@ task fatJarBuild(type: Jar) {
     with jar
 }
 
+build.dependsOn(javadoc)
+javadoc {
+    classpath += sourceSets.test.compileClasspath
+    source += sourceSets.test.allJava
+}
 build.dependsOn(fatJarGUI)
 build.dependsOn(fatJarBuild)
