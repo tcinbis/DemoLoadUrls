@@ -6,9 +6,12 @@ import java.util.TreeSet;
 import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -27,10 +30,10 @@ public class AutoSuggestion extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    StackPane root = new StackPane();
     AutocompletionTextField actf = new AutocompletionTextField();
     actf.setMaxWidth(400.0);
+    BorderPane root = new BorderPane();
+    root.setTop(actf);
     VBox hBox = new VBox(1);
     hBox.getChildren().add(actf);
     primaryStage.setResizable(false);
@@ -38,8 +41,8 @@ public class AutoSuggestion extends Application {
     primaryStage.setTitle("Hackaton");
     actf.getEntries().addAll(actf.getEntries());
     entryCount = new Label();
-    hBox.getChildren().add(entryCount);
-    root.getChildren().add(hBox);
+    entryCount.setAlignment(Pos.CENTER);
+    root.setBottom(entryCount);
     primaryStage.show();
   }
 
@@ -49,6 +52,6 @@ public class AutoSuggestion extends Application {
   }
 
   public static void displayCount(String string) {
-    entryCount.setText("Treffer :" + string);
+    entryCount.setText("Treffer: " + string);
   }
 }
