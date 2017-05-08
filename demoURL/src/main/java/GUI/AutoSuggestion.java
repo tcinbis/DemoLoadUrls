@@ -14,7 +14,7 @@ public class AutoSuggestion extends Application {
   private static Label entryCount;
 
   /**
-   * Start the JavaFX application.
+   * Init the JavaFX application.
    *
    * @param args default arguments needed for starting.
    */
@@ -31,6 +31,12 @@ public class AutoSuggestion extends Application {
     entryCount.setText("Entries found: " + string);
   }
 
+  /**
+   * Start the JavaFX Application by displaying a window with two elements.
+   * One of it is basically special Textfield, the other is a simple label.
+   *
+   * @param primaryStage default stage.
+   */
   @Override
   public void start(Stage primaryStage) {
     //Basic window properties
