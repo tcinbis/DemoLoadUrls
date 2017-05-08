@@ -31,7 +31,6 @@ public class AutocompletionTextField extends TextField {
   private static final String DATABASEURL = "jdbc:postgresql://localhost:8090/urldatabase";
   private Connection connection;
   private Statement statement;
-  private ResultSet searchResults;
   private ResultSet searchCount;
   private boolean animate = false;
   private Animation animation;
@@ -41,12 +40,31 @@ public class AutocompletionTextField extends TextField {
   private final String HTTP_WWW_DATABASE = "urls-www-http";
   private final String HTTPS_WWW_DATABASE = "urls-www-https";
   private final String REST_DATABASE = "urls-rest";
+  private final ArrayList<String> countvalues = new ArrayList<>();
+
 
 
 
 
   public AutocompletionTextField() {
     super();
+    countvalues.add("h");
+    countvalues.add("ht");
+    countvalues.add("htt");
+    countvalues.add("http");
+    countvalues.add("http:");
+    countvalues.add("http:/");
+    countvalues.add("http://");
+    countvalues.add("https");
+    countvalues.add("https:");
+    countvalues.add("https:/");
+    countvalues.add("https://");
+    countvalues.add("http://w");
+    countvalues.add("http://ww");
+    countvalues.add("http://www");
+    countvalues.add("https://w");
+    countvalues.add("https://ww");
+    countvalues.add("https://www");
     this.entries = new ArrayList<>();
     this.entriesPopup = new ContextMenu();
     animation = new Animation();
@@ -111,6 +129,92 @@ public class AutocompletionTextField extends TextField {
     });
   }
 
+  private void countOccurences(String enteredText) throws SQLException {
+    if (countvalues.contains(enteredText)){
+      int place = countvalues.indexOf(enteredText);
+      searchCount = statement.executeQuery("SELECT * FROM counts LIMIT 1 OFFSET "+place);
+    }
+    if (searchCount != null){
+      AutoSuggestion.displayCount(searchCount.getString(1));
+    } else {
+      ArrayList<String> databases = selectMatchingDatabases(enteredText);
+      Character letter = getLetter(enteredText);
+      boolean letterischar = false;
+      if (letter != null) {
+        letterischar = letter.charValue() >= (int) 'a' && letter.charValue() <= (int) 'z';
+      }
+      if (databases.size() > 1) {
+        System.err.println("Not all double database cases caught !");
+        System.err.println(Arrays.toString(databases.toArray()));
+      }
+      switch (databases.get(1)){
+        case HTTP_DATABASE:
+          if (letterischar){
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTP_DATABASE + "-" + letter + "\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          } else {
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTP_DATABASE +"\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          }
+          break;
+        case HTTP_WWW_DATABASE:
+          if (letterischar){
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTP_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          } else {
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTP_WWW_DATABASE +"\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          }
+          break;
+        case HTTPS_DATABASE:
+          if (letterischar){
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE + "-" + letter + "\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          } else {
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTPS_DATABASE +"\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          }
+          break;
+        case HTTPS_WWW_DATABASE:
+          if (letterischar){
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTPS_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          } else {
+            searchCount = statement.executeQuery(
+                "SELECT COUNT(*) FROM \"" + HTTPS_WWW_DATABASE +"\" WHERE url LIKE '"
+                    + enteredText
+                    + "%'");
+          }
+          break;
+        case REST_DATABASE:
+          searchCount = statement.executeQuery(
+              "SELECT COUNT(*) FROM \"" + HTTPS_WWW_DATABASE +"\" WHERE url LIKE '"
+                  + enteredText
+                  + "%'");
+          break;
+      }
+    }
+    System.out.println("Search count done.");
+    if (searchCount != null && searchCount.next()) {
+      System.out.println(searchCount.getString(1));
+      AutoSuggestion.displayCount(searchCount.getString(1));
+    }
+  }
+
   private void findOccurences(String enteredText) throws SQLException {
     ArrayList<String> databases = selectMatchingDatabases(enteredText);
     ArrayList<String> result = new ArrayList<>();
@@ -125,25 +229,26 @@ public class AutocompletionTextField extends TextField {
       int letterint = ran.nextInt(26);
       int offset = ran.nextInt(20);
       char c = (char) (ran.nextInt(26) + 'a');
+      ResultSet resultSet = null;
       switch (databases.get(r)) {
         case HTTP_DATABASE:
           if (letter == null) {
             if (letterint == 0) {
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             } else {
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTP_DATABASE + "-" + c + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             }
           } else if (letterischar) {
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           } else {
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
@@ -151,21 +256,21 @@ public class AutocompletionTextField extends TextField {
         case HTTP_WWW_DATABASE:
           if (letter == null){
             if (letterint == 0 || enteredText.length() <= "http://www.".length()){
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTPS_WWW_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             } else {
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + c + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             }
           } else if (letterischar){
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           } else {
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_WWW_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
@@ -173,21 +278,21 @@ public class AutocompletionTextField extends TextField {
         case HTTPS_DATABASE:
           if (letter == null) {
             if (letterint == 0) {
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             } else {
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTPS_DATABASE + "-" + c + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             }
           } else if (letterischar) {
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTPS_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           } else {
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTPS_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
@@ -195,32 +300,32 @@ public class AutocompletionTextField extends TextField {
         case HTTPS_WWW_DATABASE:
           if (letter == null){
             if (letterint == 0 || enteredText.length() <= "https://www.".length()){
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTPS_WWW_DATABASE + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             } else {
-              ResultSet resultSet = statement.executeQuery(
+              resultSet = statement.executeQuery(
                   "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + c + "\" WHERE url LIKE '" + enteredText
                       + "%' LIMIT 1 OFFSET " + offset);
             }
           } else if (letterischar){
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_WWW_DATABASE + "-" + letter + "\" WHERE url LIKE '"
                     + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           } else {
-            ResultSet resultSet = statement.executeQuery(
+            resultSet = statement.executeQuery(
                 "SELECT * FROM \"" + HTTP_WWW_DATABASE + "\" WHERE url LIKE '" + enteredText
                     + "%' LIMIT 1 OFFSET " + offset);
           }
           break;
         case REST_DATABASE:
-          ResultSet resultSet = statement.executeQuery(
+          resultSet = statement.executeQuery(
               "SELECT * FROM \"" + REST_DATABASE + "\" WHERE url LIKE '" + enteredText
                   + "%' LIMIT 1 OFFSET " + offset);
       }
-      while (searchResults != null && searchResults.next()) {
-        result.add(searchResults.getString(1));
+      while (resultSet != null && resultSet.next()) {
+        result.add(resultSet.getString(1));
       }
     }
 
@@ -256,17 +361,6 @@ public class AutocompletionTextField extends TextField {
       }
     }
     return letter;
-  }
-
-  private void countOccurences(String enteredText) throws SQLException {
-    //searchCount = statement.executeQuery(selectDatabase(enteredText,true));
-    //System.out.println(selectDatabase(enteredText,true));
-    System.out.println("Search count done.");
-    /*
-    if (searchCount != null && searchCount.next()) {
-      System.out.println(searchCount.getString(1));
-      AutoSuggestion.displayCount(searchCount.getString(1));
-    }*/
   }
 
   private ArrayList<String> selectMatchingDatabases(String enteredText) throws SQLException {
