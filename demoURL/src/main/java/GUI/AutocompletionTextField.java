@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,11 +82,12 @@ public class AutocompletionTextField extends TextField {
               " SELECT url FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%' LIMIT 5");
           System.out.println("Search results loaded.");
           entries.clear();
-
+          ArrayList<String> sortedResults = new ArrayList<>();
           while (searchResults != null && searchResults.next()) {
-            entries.add(searchResults.getString(1));
+            sortedResults.add(searchResults.getString(1));
             System.out.println(searchResults.getString(1));
           }
+          Collections.sort(sortedResults);
           //animation.setAnimate(false);
         } catch (SQLException e) {
           e.printStackTrace();
