@@ -64,6 +64,8 @@ class AutocompletionTextField extends TextField {
     countvalues.add("https://w");
     countvalues.add("https://ww");
     countvalues.add("https://www");
+    countvalues.add("https://www.");
+    countvalues.add("http://www.");
     this.entries = new ArrayList<>();
     this.entriesPopup = new ContextMenu();
     //Connect the database

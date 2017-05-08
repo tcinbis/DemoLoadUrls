@@ -29,6 +29,10 @@ public class PreOrderDatabase {
     }
   }
 
+  /**
+   * Here we will calculate some counts which we always need at runtime and which would take too long to get at runtime. That's why we
+   * decided to preload/pre calculate these values and store them inside a table.
+   */
   public void calculateCounts(){
     try {
       Statement statement = connection.createStatement();
@@ -70,25 +74,39 @@ public class PreOrderDatabase {
     }
   }
 
+  /**
+   * This method will split our 'big' Table in two smaller amounts and store them in an according table.
+   */
   public void splitInHttpAndS() {
     try {
       Statement statement = connection.createStatement();
 
       String createTableFromSelectHttps =
           "SELECT * INTO \"urls-https\" FROM urls1 WHERE url LIKE 'https://%';";
-      String deleteEntriesfromTableHttps = "DELETE FROM urls1 WHERE url LIKE 'https://%';";
-      statement.execute(createTableFromSelectHttps);
+      String renameOldTable = "ALTER TABLE \"urls1\" RENAME TO tmp";
+      String moveUnprocessedHttpEntries = "SELECT * INTO \"urls1\" FROM tmp WHERE url NOT LIKE 'https://%'";
+
+      System.out.println("Start splitting into two");
+      //statement.execute(createTableFromSelectHttps);
       System.out.println("Moved all https:// entries to urls-https");
-      statement.execute(deleteEntriesfromTableHttps);
-      System.out.println("Deleted all https:// entries from urls1");
+      statement.execute(renameOldTable);
+      System.out.println("Renamed urls1 to tmp");
+      statement.execute(moveUnprocessedHttpEntries);
+      System.out.println("Created table with unprocessed entries");
+      statement.execute("DROP TABLE tmp");
+      System.out.println("tmp dropped");
 
       String createTableFromSelectHttp =
           "SELECT * INTO \"urls-rest\" FROM urls1 WHERE url NOT LIKE 'http://%';";
-      String deleteEntriesfromTableHttp = "DELETE FROM urls1 WHERE url NOT LIKE 'http://%';";
+      moveUnprocessedHttpEntries = "SELECT * INTO urls1 FROM tmp WHERE url LIKE 'http://%'";
       statement.execute(createTableFromSelectHttp);
       System.out.println("Moved all NOT http:// entries to urls-rest");
-      statement.execute(deleteEntriesfromTableHttp);
-      System.out.println("Deleted all NOT http:// entries from urls1");
+      statement.execute(renameOldTable);
+      System.out.println("Renamed table to tmp");
+      statement.execute(moveUnprocessedHttpEntries);
+      System.out.println("Created table with unprocessed entries");
+      statement.execute("DROP TABLE tmp");
+      System.out.println("Dropped table tmp");
 
       String renameTabel = "ALTER TABLE urls1 RENAME TO \"urls-http\";";
       statement.execute(renameTabel);
@@ -101,6 +119,10 @@ public class PreOrderDatabase {
 
   /**
    * This method is supposed to order all entries starting with http:// (without www) by a-z
+   * First we select all matching entries and write them into a new table called by the according prefix, www or without www and
+   * the correct letter (a-z). Then we rename the old table, because there are some entries inside we already processed, to later be able to delete
+   * it. But before deleting the 'tmp' table we select all unprocessed entries and save them. Now we can drop the tmp table and continue
+   * processing the data. Everything starts again now.
    * @param whichPrefix Prefix can be http or https
    */
   public void orderWithoutWWW(String whichPrefix) {
@@ -109,49 +131,67 @@ public class PreOrderDatabase {
       Statement statement = connection.createStatement();
       // i=97 ,because 97 is an 'a' in ascii code and 122 is a 'z'
       for (int i = 97; i <= 122; i++) {
+
+        //First select all matching entries and write them in a new table
         String createTableFromSelect =
             "SELECT * INTO \"urls-"+whichPrefix+ "-" + (char) i + "\" FROM \"urls-"+whichPrefix+"\" WHERE url LIKE '"+whichPrefix+"://" + (char) i + "%';";
         statement.execute(createTableFromSelect);
 
+        //Rename the table from where we selected matching entries before
         String renameOldTable = "ALTER TABLE \"urls-"+whichPrefix+"\" RENAME TO tmp";
         statement.execute(renameOldTable);
 
+        //Select all entries which are left for processing and write them in a new table
         String createTableFromSelectAfter =
             "SELECT * INTO \"urls-"+whichPrefix+ "\" FROM tmp WHERE url NOT LIKE '"+whichPrefix+"://" + (char) i + "%';";
         statement.execute(createTableFromSelectAfter);
 
+        //Now we can delete the old Table which only holds entries, we already processed before.
         String dropTmpTable = "DROP TABLE tmp";
         statement.execute(dropTmpTable);
         System.out.println((char) i + " executed.");
       }
-      System.out.println("Time to order took: " + (System.currentTimeMillis() - timeStart) / 1000);
+      System.out.println("Time to order took: " + (System.currentTimeMillis() - timeStart) / 1000+" s");
     } catch (SQLException e) {
       e.printStackTrace();
     }
   }
 
+  /**
+   * This method is supposed to order all entries starting with http://www by a-z
+   * First we select all matching entries and write them into a new table called by the according prefix, www or without www and
+   * the correct letter (a-z). Then we rename the old table, because there are some entries inside we already processed, to later be able to delete
+   * it. But before deleting the 'tmp' table we select all unprocessed entries and save them. Now we can drop the tmp table and continue
+   * processing the data. Everything starts again now.
+   * @param whichPrefix Prefix can be http or https
+   */
   public void orderWithWWW(String whichPrefix) {
     try {
       long timeStart = System.currentTimeMillis();
       Statement statement = connection.createStatement();
       // i=97 ,because 97 is an 'a' in ascii code and 122 is a 'z'
       for (int i = 97; i <= 122; i++) {
+
+        //First select all matching entries and write them in a new table
         String createTableFromSelect =
             "SELECT * INTO \"urls-www-"+whichPrefix+ "-" + (char) i + "\" FROM \"urls-"+whichPrefix+"\" WHERE url LIKE '"+whichPrefix+"://www." + (char) i + "%';";
         statement.execute(createTableFromSelect);
 
+        //Rename the table from where we selected matching entries before
         String renameOldTable = "ALTER TABLE \"urls-"+whichPrefix+"\" RENAME TO tmp";
         statement.execute(renameOldTable);
 
+        //Select all entries which are left for processing and write them in a new table
         String createTableFromSelectAfter =
             "SELECT * INTO \"urls-"+whichPrefix+ "\" FROM tmp WHERE url NOT LIKE '"+whichPrefix+"://www." + (char) i + "%';";
         statement.execute(createTableFromSelectAfter);
 
+        //Now we can delete the old Table which only holds entries, we already processed before.
         String dropTmpTable = "DROP TABLE tmp";
         statement.execute(dropTmpTable);
         System.out.println((char) i + " executed.");
       }
-      System.out.println("Time to order took: " + (System.currentTimeMillis() - timeStart) / 1000);
+      System.out.println("Time to order took: " + (System.currentTimeMillis() - timeStart) / 1000+" s");
     } catch (SQLException e) {
       e.printStackTrace();
     }
