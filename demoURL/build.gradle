@@ -37,6 +37,11 @@ task fatJarGUI(type: Jar) {
     with jar
 }
 
+task deleteStuff(type: Delete){
+    println("deleting")
+    delete "${buildDir}/libs/Hackathon-0.1.jar"
+}
+
 task fatJarBuild(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'One Jar',
@@ -50,9 +55,12 @@ task fatJarBuild(type: Jar) {
 }
 
 build.dependsOn(javadoc)
+
 javadoc {
     classpath += sourceSets.test.compileClasspath
     source += sourceSets.test.allJava
 }
+
 build.dependsOn(fatJarGUI)
 build.dependsOn(fatJarBuild)
+build.finalizedBy(deleteStuff)
