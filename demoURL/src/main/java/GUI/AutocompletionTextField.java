@@ -15,6 +15,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javax.print.DocFlavor.STRING;
 
 public class AutocompletionTextField extends TextField {
 
@@ -33,6 +34,14 @@ public class AutocompletionTextField extends TextField {
   private ArrayList<String> results = new ArrayList<>();
   private boolean animate = false;
   private Animation animation;
+
+  private final String HTTP_DATABASE = "urls-http";
+  private final String HTTPS_DATABASE = "urls-https";
+  private final String HTTP_WWW_DATABASE = "urls-www-http";
+  private final String HTTPS_WWW_DATABASE = "urls-www-https";
+  private final String REST_DATABASE = "urls-rest";
+
+
 
 
   public AutocompletionTextField() {
@@ -71,23 +80,8 @@ public class AutocompletionTextField extends TextField {
         try {
           statement = connection.createStatement();
           //animation.setAnimate(true);
-          searchCount = statement.executeQuery(
-              "SELECT COUNT(url) FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%'");
-          System.out.println("Search count done.");
-          if (searchCount != null && searchCount.next()) {
-            System.out.println(searchCount.getString(1));
-            AutoSuggestion.displayCount(searchCount.getString(1));
-          }
-          searchResults = statement.executeQuery(
-              " SELECT url FROM urls1 WHERE url LIKE '" + enteredText.toLowerCase() + "%' LIMIT 5");
-          System.out.println("Search results loaded.");
-          entries.clear();
-          ArrayList<String> sortedResults = new ArrayList<>();
-          while (searchResults != null && searchResults.next()) {
-            sortedResults.add(searchResults.getString(1));
-            System.out.println(searchResults.getString(1));
-          }
-          Collections.sort(sortedResults);
+          countOccurences(enteredText);
+          findOccurences(enteredText);
           //animation.setAnimate(false);
         } catch (SQLException e) {
           e.printStackTrace();
@@ -114,6 +108,88 @@ public class AutocompletionTextField extends TextField {
     focusedProperty().addListener((observableValue, oldValue, newValue) -> {
       entriesPopup.hide();
     });
+  }
+
+  private void findOccurences(String enteredText) throws SQLException {
+    searchResults = statement.executeQuery(selectDatabase(enteredText,false)+"LIMIT 5");
+    System.out.println("Search results loaded.");
+    entries.clear();
+    ArrayList<String> sortedResults = new ArrayList<>();
+    while (searchResults != null && searchResults.next()) {
+      sortedResults.add(searchResults.getString(1));
+      System.out.println(searchResults.getString(1));
+    }
+    Collections.sort(sortedResults);
+  }
+
+  private void countOccurences(String enteredText) throws SQLException {
+    searchCount = statement.executeQuery(selectDatabase(enteredText,true));
+    System.out.println("Search count done.");
+    if (searchCount != null && searchCount.next()) {
+      System.out.println(searchCount.getString(1));
+      AutoSuggestion.displayCount(searchCount.getString(1));
+    }
+  }
+
+  private String selectDatabase(String enteredText,boolean count) {
+    boolean https = false;
+    boolean http = false;
+    char firstLetter;
+    if (enteredText.startsWith("https://")) {
+      https = true;
+    } else if (enteredText.startsWith("http://")) {
+      http = true;
+    }
+    if (https){
+      if(enteredText.startsWith("www.",8)){
+        firstLetter = enteredText.charAt(12);
+        String query;
+        if (count){
+          query = "SELECT COUNT(*) FROM "+HTTPS_WWW_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        } else {
+          query = "SELECT * FROM "+HTTPS_WWW_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        }
+        return query;
+      } else {
+        firstLetter = enteredText.charAt(8);
+        String query;
+        if (count) {
+          query = "SELECT COUNT(*) FROM "+HTTPS_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        } else {
+          query = "SELECT * FROM "+HTTPS_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        }
+        return query;
+      }
+    } else if (http){
+      if(enteredText.startsWith("www.",7)){
+        firstLetter = enteredText.charAt(11);
+        String query;
+        if (count){
+          query = "SELECT COUNT(*) FROM "+HTTP_WWW_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        } else {
+          query = "SELECT * FROM "+HTTP_WWW_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        }
+        return query;
+      } else {
+        firstLetter = enteredText.charAt(7);
+        String query;
+        if(count){
+          query = "SELECT COUNT(*) FROM "+HTTP_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        } else {
+          query = "SELECT * FROM "+HTTP_DATABASE+"-"+firstLetter+" WHERE url LIKE '"+enteredText+"%' ";
+        }
+        return query;
+      }
+    } else {
+      String query;
+      if (count){
+        query = "SELECT COUNT(*) FROM "+REST_DATABASE+" WHERE url LIKE '"+enteredText+"%' ";
+      } else {
+        query = "SELECT * FROM "+REST_DATABASE+" WHERE url LIKE '"+enteredText+"%' ";
+      }
+      return query;
+    }
+
   }
 
   /**
